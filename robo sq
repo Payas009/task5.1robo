@@ -1,0 +1,56 @@
+import time
+from duckietown.dtros import DTROS, NodeType
+from duckietown_msgs.msg import Twist2DStamped
+import rospy
+
+class SquareMovementNode(DTROS):
+    def __init__(self, node_name):
+        super(SquareMovementNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
+        self.side_length = 1.0  # Adjust this as necessary
+        self.rotation_duration = 1.0  # Adjust this as necessary
+        self.straight_duration = 2.0  # Adjust this as necessary
+        self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
+        self.log("Initialized")
+
+    def move_forward(self, duration):
+        twist_msg = Twist2DStamped()
+        twist_msg.v = 0.2  # forward speed
+        twist_msg.omega = 0.0
+        start_time = rospy.get_time()
+        while rospy.get_time() - start_time < duration:
+            self.pub_car_cmd.publish(twist_msg)
+            time.sleep(0.1)
+        twist_msg.v = 0.0
+        self.pub_car_cmd.publish(twist_msg)
+
+    def turn_left(self, duration):
+        twist_msg = Twist2DStamped()
+        twist_msg.v = 0.0
+        twist_msg.omega = 1.0  # angular speed for left turn
+        start_time = rospy.get_time()
+        while rospy.get_time() - start_time < duration:
+            self.pub_car_cmd.publish(twist_msg)
+            time.sleep(0.1)
+        twist_msg.omega = 0.0
+        self.pub_car_cmd.publish(twist_msg)
+
+    def move_in_square(self):
+        for _ in range(4):
+            self.move_forward(self.straight_duration)
+            time.sleep(1)  # pause between movements for stability
+            self.turn_left(self.rotation_duration)
+            time.sleep(1)  # pause between movements for stability
+
+    def on_shutdown(self):
+        twist_msg = Twist2DStamped()
+        twist_msg.v = 0.0
+        twist_msg.omega = 0.0
+        self.pub_car_cmd.publish(twist_msg)
+        self.log("Shutdown")
+
+if __name__ == '__main__':
+    node = SquareMovementNode(node_name='square_movement_node')
+    rospy.on_shutdown(node.on_shutdown)
+    node.move_in_square()
+    rospy.spin()
+ 

@@ -6,9 +6,9 @@ import rospy
 class SquareMovementNode(DTROS):
     def __init__(self, node_name):
         super(SquareMovementNode, self).__init__(node_name=node_name, node_type=NodeType.PERCEPTION)
-        self.side_length = 1.0
-        self.rotation_duration = 1.0
-        self.straight_duration = 1.0
+        self.side_length = 1.0  # Adjust this as necessary
+        self.rotation_duration = 1.0  # Adjust this as necessary
+        self.straight_duration = 2.0  # Adjust this as necessary
         self.pub_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
         self.log("Initialized")
 
